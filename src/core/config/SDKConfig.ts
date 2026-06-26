@@ -3,6 +3,9 @@ export interface AuthStrategyConfig {
   clientId?: string;
   issuer?: string;
   redirectUri?: string;
+  loginUrl?: string;
+  logoutUrl?: string;
+  refreshTokenUrl?: string;
 }
 
 export interface SDKConfig {

@@ -20,11 +20,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // 初始化策略
   const strategy: AuthStrategy = useMemo(() => {
     if (config.auth.type === 'sso') {
-      return new SSOStrategy(httpClient);
+      return new SSOStrategy(httpClient, config.auth);
     }
     // TODO: 支持其他策略
-    return new SSOStrategy(httpClient);
-  }, [config.auth.type, httpClient]);
+    return new SSOStrategy(httpClient, config.auth);
+  }, [config.auth, httpClient]);
 
   const authService = useMemo(() => createAuthService(strategy), [strategy]);
 
