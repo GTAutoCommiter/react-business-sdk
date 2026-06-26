@@ -1,0 +1,76 @@
+name: Deploy docs to GitHub Pages
+
+on:
+  # 在推送到 main 分支时触发
+  push:
+    branches:
+      - main
+    # 只有 website 目录发生变化时才触发文档构建（可选，如果需要每次都触发可以删除 paths）
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy-docs.yml'
+
+  # 允许在 Actions tab 手动触发此 workflow
+  workflow_dispatch: {}
+
+# 设置 GitHub 权限，允许上传到 GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 限制并发部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Docusaurus
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        # 在根目录和 website 目录安装依赖
+        run: |
+          pnpm install
+          cd website
+          pnpm install
+
+      - name: Build website
+        run: |
+          cd website
+          pnpm run build
+
+      - name: Upload Build Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Docusaurus 默认构建输出目录是 website/build
+          path: website/build
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    # 将此 job 部署到对应的 environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
